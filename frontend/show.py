@@ -43,7 +43,6 @@ def show_dashboard():
     cpu = st.slider("CPU", 1, 4)
     ram = st.slider("RAM (MB)", 512, 4096, step=512)
     disk = st.slider("Диск (GB)", 1, 20)
-    time_limit = st.slider("Время (мин)", 1, 120)
 
     if st.button("Создать"):
         res = requests.post(f"{API_URL}/machines/create", json={
@@ -53,7 +52,6 @@ def show_dashboard():
             "cpu": cpu,
             "ram": ram,
             "disk": disk,
-            "time_limit": time_limit
         })
 
         if res.status_code == 200:
