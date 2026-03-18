@@ -233,3 +233,32 @@ class QemuManager:
             if vm == vm_name:
                 return vm
         return None
+
+docker_manager = DockerManager()
+qemu_manager = QemuManager()
+
+def create_container(os_name, cpu, ram, disk, time_limit=None):
+    return docker_manager.create_container(os_name, cpu, ram, disk)
+
+def create_vm(os_name, cpu, ram, disk, time_limit=None):
+    return qemu_manager.create_vm(os_name, cpu, ram, disk)
+
+def start_machine(machine):
+    if machine.type == "container":
+        docker_manager.start_container_by_name(machine.os_name)
+    else:
+        qemu_manager.start_vm(machine.os_name)
+    return {"status": "running"}
+
+def stop_machine(machine):
+    if machine.type == "container":
+        docker_manager.stop_container_by_name(machine.os_name)
+    else:
+        qemu_manager.stop_vm(machine.os_name)
+    return {"status": "stopped"}
+
+def delete_machine(machine):
+    if machine.type == "container":
+        docker_manager.delete_container_by_name(machine.os_name)
+    else:
+        qemu_manager.delete_vm(machine.os_name)

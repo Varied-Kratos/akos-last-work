@@ -24,7 +24,7 @@ def get_db():
     finally:
         db.close()
 
-@app.post("/register", response_model=schemas.UserRegister)
+@app.post("/register", response_model=schemas.UserResponse)
 def register(user: schemas.UserRegister, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.username == user.username).first()
     if db_user:
@@ -33,14 +33,14 @@ def register(user: schemas.UserRegister, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return user
+    return new_user
 
-@app.post("/login", response_model=schemas.UserRegister)
+@app.post("/login", response_model=schemas.UserResponse)
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.username == user.username, models.User.password == user.password).first()
     if not db_user:
         raise HTTPException(status_code=400, detail="Invalid username or password")
-    return schemas.UserRegister(username=db_user.username, password=db_user.password)
+    return db_user
 
 @app.post("/machines/create", response_model=schemas.MachineResponse)
 def create_machine(machine: schemas.MachineCreate, db: Session = Depends(get_db)):

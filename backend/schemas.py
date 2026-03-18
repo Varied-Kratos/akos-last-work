@@ -10,6 +10,13 @@ class UserLogin(BaseModel):
     username: str
     password: str
 
+class UserResponse(BaseModel):
+    id: int
+    username: str
+
+    class Config:
+        orm_mode = True
+
 class MachineCreate(BaseModel):
     user_id: int
     type: str  # container or vm
