@@ -61,29 +61,50 @@ def show_dashboard():
             st.rerun()
         else:
             st.error(res.text)
-        
-    st.subheader("Машины")
 
     res = requests.get(f"{API_URL}/machines", params={
         "user_id": user["id"]
     })
 
     machines = res.json()
+    containers = [c for c in machines if c["type"] == "container"]
+    vms = [vm for vm in machines if vm["type"] == "vm"]
 
-    for m in machines:
-        st.write(f"ID: {m['id']} | {m['type']} | {m['status']}")
+    st.subheader("VM")
+    for vm in vms:
+        st.write(f"ID: {vm['id']} | {vm['os_name']} | {vm['type']} | {vm['status']}")
         col1, col2, col3 = st.columns(3)
 
-        if col1.button("Старт", key=f"start_{m['id']}"):
-            requests.post(f"{API_URL}/machines/{m['id']}/start")
+        if col1.button("Старт", key=f"start_{vm['id']}"):
+            requests.post(f"{API_URL}/machines/{vm['id']}/start")
             st.rerun()
 
-        if col2.button("Стоп", key=f"stop_{m['id']}"):
-            requests.post(f"{API_URL}/machines/{m['id']}/stop")
+        if col2.button("Стоп", key=f"stop_{vm['id']}"):
+            requests.post(f"{API_URL}/machines/{vm['id']}/stop")
             st.rerun()
 
-        if col3.button("Удалить", key=f"delete_{m['id']}"):
-            requests.delete(f"{API_URL}/machines/{m['id']}")
+        if col3.button("Удалить", key=f"delete_{vm['id']}"):
+            requests.delete(f"{API_URL}/machines/{vm['id']}")
             st.rerun()
 
-        st.code(f"ssh {m['ssh_user']}@{m['ssh_host']} -p {m['ssh_port']}")
+        st.code(f"ssh {vm['ssh_user']}@{vm['ssh_host']} -p {vm['ssh_port']}")
+
+
+    st.subheader("Контейнеры")
+    for c in containers:
+        st.write(f"ID: {c['id']} | {c['os_name']} | {c['type']} | {c['status']}")
+        col1, col2, col3 = st.columns(3)
+
+        if col1.button("Старт", key=f"start_{c['id']}"):
+            requests.post(f"{API_URL}/machines/{c['id']}/start")
+            st.rerun()
+
+        if col2.button("Стоп", key=f"stop_{c['id']}"):
+            requests.post(f"{API_URL}/machines/{c['id']}/stop")
+            st.rerun()
+
+        if col3.button("Удалить", key=f"delete_{c['id']}"):
+            requests.delete(f"{API_URL}/machines/{c['id']}")
+            st.rerun()
+
+        st.code(f"ssh {c['ssh_user']}@{c['ssh_host']} -p {c['ssh_port']}")
