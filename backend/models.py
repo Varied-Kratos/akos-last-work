@@ -14,6 +14,7 @@ class Machine(Base):
     __tablename__ = "machines"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)
     type = Column(String, nullable=False)  # container or vm
     os_name = Column(String, nullable=False)
     cpu = Column(Integer, nullable=False)

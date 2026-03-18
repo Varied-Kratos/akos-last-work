@@ -9,4 +9,3 @@ if "user" not in st.session_state:
     show_auth()
 else:
     show_dashboard()
-

@@ -48,22 +48,32 @@ def create_machine(machine: schemas.MachineCreate, db: Session = Depends(get_db)
         raise HTTPException(status_code=400, detail="type must be 'container' or 'vm'")
     if not db.query(models.User).filter(models.User.id == machine.user_id).first():
         raise HTTPException(status_code=404, detail="User not found")
+    
     if machine.type == "container":
         result = managers.create_container(machine.os_name, machine.cpu, machine.ram, machine.disk, machine.time_limit)
     else:
         result = managers.create_vm(machine.os_name, machine.cpu, machine.ram, machine.disk, machine.time_limit)
+    
+    if result.get("status") in ["failed", "error"]:
+        raise HTTPException(status_code=500, detail=result.get("error", "Failed to create machine"))
+    
+    instance_name = result.get("container_name") or result.get("vm_name")
+    if not instance_name:
+        raise HTTPException(status_code=500, detail="Failed to get instance name from manager")
+    
     db_machine = models.Machine(
         user_id=machine.user_id,
+        name=instance_name,
         type=machine.type,
         os_name=machine.os_name,
         cpu=machine.cpu,
         ram=machine.ram,
         disk=machine.disk,
-        status=result["status"],
-        ssh_host=result["ssh_host"],
-        ssh_port=result["ssh_port"],
-        ssh_user=result["ssh_user"],
-        ssh_password=result["ssh_password"],
+        status=result.get("status", "unknown"),
+        ssh_host=result.get("ssh_host"),
+        ssh_port=result.get("ssh_port"),
+        ssh_user=result.get("ssh_user"),
+        ssh_password=result.get("ssh_password"),
         time_limit=machine.time_limit
     )
     db.add(db_machine)
@@ -74,7 +84,7 @@ def create_machine(machine: schemas.MachineCreate, db: Session = Depends(get_db)
 @app.get("/machines", response_model=List[schemas.MachineResponse])
 def list_machines(user_id: Optional[int] = None, db: Session = Depends(get_db)):
     query = db.query(models.Machine)
-    if user_id:
+    if user_id is not None:
         query = query.filter(models.Machine.user_id == user_id)
     return query.all()
 
@@ -91,7 +101,9 @@ def start_machine(machine_id: int, db: Session = Depends(get_db)):
     if not machine:
         raise HTTPException(status_code=404, detail="Machine not found")
     result = managers.start_machine(machine)
-    machine.status = result["status"]
+    if result.get("status") == "error":
+        raise HTTPException(status_code=500, detail=result.get("error", "Failed to start machine"))
+    machine.status = result.get("status", "running")
     db.commit()
     db.refresh(machine)
     return machine
@@ -102,7 +114,9 @@ def stop_machine(machine_id: int, db: Session = Depends(get_db)):
     if not machine:
         raise HTTPException(status_code=404, detail="Machine not found")
     result = managers.stop_machine(machine)
-    machine.status = result["status"]
+    if result.get("status") == "error":
+        raise HTTPException(status_code=500, detail=result.get("error", "Failed to stop machine"))
+    machine.status = result.get("status", "stopped")
     machine.stop_reason = result.get("stop_reason")
     db.commit()
     db.refresh(machine)
@@ -113,7 +127,9 @@ def delete_machine(machine_id: int, db: Session = Depends(get_db)):
     machine = db.query(models.Machine).filter(models.Machine.id == machine_id).first()
     if not machine:
         raise HTTPException(status_code=404, detail="Machine not found")
-    managers.delete_machine(machine)
+    result = managers.delete_machine(machine)
+    if result.get("status") == "error":
+        raise HTTPException(status_code=500, detail=result.get("error", "Failed to delete machine"))
     db.delete(machine)
     db.commit()
     return {"detail": "Machine deleted"}

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -14,12 +14,11 @@ class UserResponse(BaseModel):
     id: int
     username: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class MachineCreate(BaseModel):
     user_id: int
-    type: str  # container or vm
+    type: str
     os_name: str
     cpu: int
     ram: int
@@ -29,6 +28,7 @@ class MachineCreate(BaseModel):
 class MachineResponse(BaseModel):
     id: int
     user_id: int
+    name: str
     type: str
     os_name: str
     cpu: int
@@ -43,5 +43,4 @@ class MachineResponse(BaseModel):
     time_limit: Optional[int]
     stop_reason: Optional[str]
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

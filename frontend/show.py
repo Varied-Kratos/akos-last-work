@@ -41,7 +41,7 @@ def show_dashboard():
     machine_type = st.selectbox("Тип", ["container", "vm"])
     os_name = st.selectbox("ОС", ["alpine", "ubuntu", "debian"])
     cpu = st.slider("CPU", 1, 4)
-    ram = st.slider("RAM (GB)", 1, 4)
+    ram = st.slider("RAM (MB)", 512, 4096, step=512)
     disk = st.slider("Диск (GB)", 1, 20)
     time_limit = st.slider("Время (мин)", 1, 120)
 

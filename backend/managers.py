@@ -234,31 +234,94 @@ class QemuManager:
                 return vm
         return None
 
-docker_manager = DockerManager()
-qemu_manager = QemuManager()
+_docker_manager = None
+_qemu_manager = None
+
+def get_docker_manager():
+    global _docker_manager
+    if _docker_manager is None:
+        _docker_manager = DockerManager()
+    return _docker_manager
+
+def get_qemu_manager():
+    global _qemu_manager
+    if _qemu_manager is None:
+        _qemu_manager = QemuManager()
+    return _qemu_manager
 
 def create_container(os_name, cpu, ram, disk, time_limit=None):
-    return docker_manager.create_container(os_name, cpu, ram, disk)
+    try:
+        manager = get_docker_manager()
+        return manager.create_container(os_name, cpu, ram, disk)
+    except Exception as e:
+        return {
+            'status': 'failed',
+            'error': f"Docker manager error: {str(e)}"
+        }
 
 def create_vm(os_name, cpu, ram, disk, time_limit=None):
-    return qemu_manager.create_vm(os_name, cpu, ram, disk)
+    try:
+        manager = get_qemu_manager()
+        return manager.create_vm(os_name, cpu, ram, disk)
+    except Exception as e:
+        return {
+            'status': 'failed',
+            'error': f"QEMU manager error: {str(e)}"
+        }
 
 def start_machine(machine):
-    if machine.type == "container":
-        docker_manager.start_container_by_name(machine.os_name)
-    else:
-        qemu_manager.start_vm(machine.os_name)
-    return {"status": "running"}
+    try:
+        if machine.type == "container":
+            manager = get_docker_manager()
+            success = manager.start_container_by_name(machine.name)
+            if success:
+                return {"status": "running"}
+            else:
+                return {"status": "error", "error": f"Failed to start container {machine.name}"}
+        else:
+            manager = get_qemu_manager()
+            success = manager.start_vm(machine.name)
+            if success:
+                return {"status": "running"}
+            else:
+                return {"status": "error", "error": f"Failed to start VM {machine.name}"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 def stop_machine(machine):
-    if machine.type == "container":
-        docker_manager.stop_container_by_name(machine.os_name)
-    else:
-        qemu_manager.stop_vm(machine.os_name)
-    return {"status": "stopped"}
+    try:
+        if machine.type == "container":
+            manager = get_docker_manager()
+            success = manager.stop_container_by_name(machine.name)
+            if success:
+                return {"status": "stopped"}
+            else:
+                return {"status": "error", "error": f"Failed to stop container {machine.name}"}
+        else:
+            manager = get_qemu_manager()
+            success = manager.stop_vm(machine.name)
+            if success:
+                return {"status": "stopped"}
+            else:
+                return {"status": "error", "error": f"Failed to stop VM {machine.name}"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 def delete_machine(machine):
-    if machine.type == "container":
-        docker_manager.delete_container_by_name(machine.os_name)
-    else:
-        qemu_manager.delete_vm(machine.os_name)
+    try:
+        if machine.type == "container":
+            manager = get_docker_manager()
+            success = manager.delete_container_by_name(machine.name)
+            if success:
+                return {"status": "deleted"}
+            else:
+                return {"status": "error", "error": f"Failed to delete container {machine.name}"}
+        else:
+            manager = get_qemu_manager()
+            success = manager.delete_vm(machine.name)
+            if success:
+                return {"status": "deleted"}
+            else:
+                return {"status": "error", "error": f"Failed to delete VM {machine.name}"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
