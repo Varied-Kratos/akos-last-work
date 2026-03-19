@@ -195,15 +195,14 @@ class QemuManager:
         except Exception as e:
             return False
     
-    def start_vm(self, vm_name):
+    def start_vm(self, vm_name, ssh_port, cpu, ram):
         disk_path = f"{self.disks_dir}/{vm_name}.qcow2"
         if not os.path.exists(disk_path):
             return False
-        parts = vm_name.split('_')
-        os_name = parts[0] if parts else "unknown"
+        if ssh_port is None:
+            return False
         try:
-            ssh_port = random.randint(20000, 30000)
-            cmd = self._get_qemu_command(vm_name, disk_path, ssh_port, 1, 512)
+            cmd = self._get_qemu_command(vm_name, disk_path, ssh_port, cpu, ram)
             subprocess.run(cmd, check=True)
             return True
         except Exception as e:
@@ -279,8 +278,10 @@ def start_machine(machine):
             else:
                 return {"status": "error", "error": f"Failed to start container {machine.name}"}
         else:
+            if machine.ssh_port is None:
+                return {"status": "error", "error": "SSH port not found in database"}
             manager = get_qemu_manager()
-            success = manager.start_vm(machine.name)
+            success = manager.start_vm(machine.name, machine.ssh_port, machine.cpu, machine.ram)
             if success:
                 return {"status": "running"}
             else:
