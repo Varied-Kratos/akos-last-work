@@ -23,7 +23,6 @@ class MachineCreate(BaseModel):
     cpu: int
     ram: int
     disk: int
-    time_limit: int
 
 class MachineResponse(BaseModel):
     id: int
@@ -40,7 +39,6 @@ class MachineResponse(BaseModel):
     ssh_user: Optional[str]
     ssh_password: Optional[str]
     created_at: datetime
-    time_limit: Optional[int]
     stop_reason: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)

@@ -249,7 +249,7 @@ def get_qemu_manager():
         _qemu_manager = QemuManager()
     return _qemu_manager
 
-def create_container(os_name, cpu, ram, disk, time_limit=None):
+def create_container(os_name, cpu, ram, disk):
     try:
         manager = get_docker_manager()
         return manager.create_container(os_name, cpu, ram, disk)
@@ -259,7 +259,7 @@ def create_container(os_name, cpu, ram, disk, time_limit=None):
             'error': f"Docker manager error: {str(e)}"
         }
 
-def create_vm(os_name, cpu, ram, disk, time_limit=None):
+def create_vm(os_name, cpu, ram, disk):
     try:
         manager = get_qemu_manager()
         return manager.create_vm(os_name, cpu, ram, disk)

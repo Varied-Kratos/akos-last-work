@@ -50,9 +50,9 @@ def create_machine(machine: schemas.MachineCreate, db: Session = Depends(get_db)
         raise HTTPException(status_code=404, detail="User not found")
     
     if machine.type == "container":
-        result = managers.create_container(machine.os_name, machine.cpu, machine.ram, machine.disk, machine.time_limit)
+        result = managers.create_container(machine.os_name, machine.cpu, machine.ram, machine.disk)
     else:
-        result = managers.create_vm(machine.os_name, machine.cpu, machine.ram, machine.disk, machine.time_limit)
+        result = managers.create_vm(machine.os_name, machine.cpu, machine.ram, machine.disk)
     
     if result.get("status") in ["failed", "error"]:
         raise HTTPException(status_code=500, detail=result.get("error", "Failed to create machine"))
@@ -73,8 +73,7 @@ def create_machine(machine: schemas.MachineCreate, db: Session = Depends(get_db)
         ssh_host=result.get("ssh_host"),
         ssh_port=result.get("ssh_port"),
         ssh_user=result.get("ssh_user"),
-        ssh_password=result.get("ssh_password"),
-        time_limit=machine.time_limit
+        ssh_password=result.get("ssh_password")
     )
     db.add(db_machine)
     db.commit()
