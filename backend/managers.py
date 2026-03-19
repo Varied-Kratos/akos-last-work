@@ -108,9 +108,9 @@ class QemuManager:
         self.system = platform.system()
         self.arch = platform.machine()
         self.ssh_creds = {
-            "ubuntu": {"user": "ubuntu", "password": "ubuntu"},
-            "debian": {"user": "debian", "password": "debian"},
-            "alpine": {"user": "root", "password": "root"}
+            "ubuntu": {"user": "root", "password": "123"},
+            "debian": {"user": "root", "password": "123"},
+            "alpine": {"user": "root", "password": "123"}
         }
 
     def _get_qemu_command(self, vm_name, disk_path, ssh_port, cpu, ram):
